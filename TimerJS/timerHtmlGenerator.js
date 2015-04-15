@@ -9,8 +9,17 @@ function generate() {
 $(function () {
     var count = 1;
 
-    $("#addTimer").bind("click", function () {
+    function getNewTimerName() {
         var timerName = $("#newTimerName").val();
+
+        if (timerName === "") {
+            throw "incorrect name";
+        }
+
+        return timerName;
+    }
+
+    function getNewTimerGoal() {
         var timerGoalMM = Number( $("#newGoalMM").val() );
         var timerGoalHH = Number($("#newGoalHH").val());
         var timerGoalSS = Number($("#newGoalSS").val());
@@ -20,25 +29,40 @@ $(function () {
             throw "incorrect goal";
         }
 
-        if (timerName === "") {
-            throw "incorrect name";
-        }
+        return timerGoal;
+    }
 
-        var timer = new timerNameSpace.Timer(timerGoal, timerName);
-
+    function getNewRow(newRowID, newTimerGoal, newTimerName) {
         var clonedDiv = $('#timerRow').clone();
-        clonedDiv.attr("id", "row" + count);
-        clonedDiv.find("#goal").text(timerGoal.hh + ":" + timerGoal.mm + ":" + timerGoal.ss);
-        clonedDiv.find("#timerName").text(timerName);
-        $('.addRow').after(clonedDiv);
+        clonedDiv.attr("id", newRowID);
+        clonedDiv.find("#goal").text(newTimerGoal.hh + ":" + newTimerGoal.mm + ":" + newTimerGoal.ss);
+        clonedDiv.find("#timerName").text(newTimerName);
 
-        $("#row" + count + " #startTimer").bind("click", function () {
+        return clonedDiv;
+    }
+
+    $("#addTimer").bind("click", function () {
+        // Get the new row's data
+        var newTimerName = getNewTimerName();
+        var newTimerGoal = getNewTimerGoal();
+        var timer = new timerNameSpace.Timer(newTimerGoal, newTimerName);
+        var newRowId = "row" + count;
+
+        // clone and insert the new row
+        var newRow = getNewRow(newRowId, newTimerGoal, newTimerName);
+        $('.addRow').after(newRow);
+
+        // update timer
+        $("#" + newRowId + " #timerText").text(timer.getTime());
+
+        // set the new row's button events
+        $("#" + newRowId + " #startTimer").bind("click", function () {
             timer.start(function (val) {
-                $("#row1 #timerText").text(val);
+                $("#" + newRowId + " #timerText").text(val);
             });
         });
 
-        $("#row" + count + " #stopTimer").bind("click", function () {
+        $("#" + newRowId + " #stopTimer").bind("click", function () {
             timer.stop();
         });
 
